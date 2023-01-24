@@ -2,9 +2,6 @@
 import requests 
 import json
 import API_details
-from importlib import reload
-reload(API_details)
-print(API_details.ACCESS_TOKEN)
 
 def get_token():
     url = "https://test.api.amadeus.com/v1/security/oauth2/token"
@@ -16,7 +13,8 @@ def get_token():
 
     response = requests.request("POST", url, headers=headers, data=payload)
 
-
+    response = json.loads(response.text)
+    API_details.ACCESS_TOKEN = response['access_token'] 
 
 
 def get_data(origin, destination,departure, adults, children):
@@ -65,9 +63,30 @@ def get_data(origin, destination,departure, adults, children):
         json.dump(file_json, f, indent = 2)
     return data
 
-data = get_data('BHX', 'IAS', '2023-05-05', '4', '0')
+
+def iterate_date(listOrigin, listDestination):
+    for origin in listOrigin:
+        for destination in listDestination:
+            for i in range(1, 30):
+                if i < 10:
+                    i = '0'+str(i)
+                print(i)
+                get_data(origin, destination, f'2023-05-{i}', '4', '0')
+
+
+
+
 # %%
 get_token()
+iterate_date 
+
+print(API_details.ACCESS_TOKEN)
+
+
+
 # %%
-print(data)
-# %%
+if __name__ == '__main__':
+    get_token()
+    listOrigin = ['BHX', 'MAN']
+    listDestination = ['IAS']
+    iterate_date(listOrigin, listDestination)
