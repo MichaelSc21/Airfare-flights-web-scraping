@@ -18,7 +18,7 @@ def get_token():
 
 
 def get_data(origin, destination,departure, adults, children):
-    url = f"https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode={origin}&destinationLocationCode={destination}&departureDate={departure}&adults={adults}&children={children}&nonStop=false&max=250"
+    url = f"https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode={origin}&destinationLocationCode={destination}&departureDate={departure}&adults={adults}&children={children}&nonStop=false&max=250&currencyCode=GBP"
 
     #payload='origin=BHX&destination=IAS&departureDate=2023-05-02&adults=1&nonStop=False'
     payload = {}
