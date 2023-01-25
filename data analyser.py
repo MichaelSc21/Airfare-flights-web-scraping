@@ -24,11 +24,14 @@ def sanitisation():
             sanitised_data[date]['no_trips'].append(len(data[date][i]["itineraries"][0]['segments']))
             sanitised_data[date]['currency'].append(data[date][i]['price']['currency'])
 
-            sanitised_data[date]['price'].append(np.array(data[date][i]['price']['total']).astype(np.float32))
+            sanitised_data[date]['price'].append(data[date][i]['price']['total'])
 
-            
+        
+        sanitised_data[date]['price'] = np.array(sanitised_data[date]['price'], dtype = np.float32)
+        
 
-            """sanitised_data = {
+        print(sanitised_data[date]['price'])
+        """sanitised_data = {
                 'date': data[date][i]["itineraries"][0]['segments'][0]['departure']['at'],
                 'no_trips': len(data[date][i]["itineraries"][0]['segments']),
                 'curreny': data[date][i]['price']['currency'],
@@ -46,5 +49,16 @@ count = 0
 for i, j in df.iterrows():
     print(count)
     count+= 1
-    print(type(j[2]))
+    print(type(i))
+# %%
+
+def function1(row):
+
+    return row[0]
+
+
+df['price'] = df.apply(lambda row: np.min(row[2]), axis = 1)
+df['currency'] =  df['currency'].apply(lambda row: function1(row))
+# %%
+df
 # %%
