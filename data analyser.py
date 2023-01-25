@@ -24,7 +24,7 @@ def sanitisation():
             sanitised_data[date]['no_trips'].append(len(data[date][i]["itineraries"][0]['segments']))
             sanitised_data[date]['currency'].append(data[date][i]['price']['currency'])
 
-            sanitised_data[date]['price'].append(data[date][i]['price']['total'])
+            sanitised_data[date]['price'].append(np.array(data[date][i]['price']['total']).astype(np.float32))
 
             
 
@@ -38,7 +38,13 @@ def sanitisation():
     return sanitised_data
 
 data = sanitisation()
-df = pd.DataFrame(data)
+df = pd.DataFrame.from_dict(data, orient='index')
 # %%
-df
+type(['price'])
+# %%
+count = 0
+for i, j in df.iterrows():
+    print(count)
+    count+= 1
+    print(type(j[2]))
 # %%
