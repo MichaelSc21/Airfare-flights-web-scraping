@@ -20,5 +20,5 @@
 <ul>
   <li> The minimum price of each day</li>
   <li> The currrency of that flight</li>
-  <li> The number of stops of that flight</li>
+  <li> The number of stops of that flight(Note: I have to figure out how to get the index of the minimum price of the np.array)</li>
 </ul
