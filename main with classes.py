@@ -49,31 +49,33 @@ def get_data(origin, destination,departure, adults, children):
     data = json.loads(response.text)
     print(data)
     
+    with open('airfare#1.json', 'r') as f:
+        try:
+            file_json = json.load(f)
+        except: 
+            pass
 
-
-    with open('airfare#1.json', 'w+') as f:
+    with open('airfare#1.json', 'w') as f:
         
         data = data['data']
-        print(data)
-        print(type(data))
-        
         try:
-            try:
-                file_json = json.load(f)
-                file_json[departure].append(data)
-                print('appended new flights to existing date')
-            except Exception as err:
-                print('adding flights to a new date')
-                print(err)
-                file_json[departure] = data
-                print('done')
-        except Exception as e:
-            print(e)
-            print('creating a json object in the first place')
-            del data[0]
-            file_json = {departure: data}
-        json.dump(file_json, f, indent = 2)
 
+            file_json[departure] = data
+            print('file is empty')
+        except Exception as err:
+            print(err)
+            try:
+                temp_dict = {departure: data}
+                #temp_dict = json.dumps(temp_dict)
+                print(temp_dict)
+                file_json = temp_dict
+                print('adding the flights for the first date')
+            except Exception as err:
+                print(err)
+
+
+        json.dump(file_json, f, indent = 2)
+    print(file_json)
 
 @timeit(list_times)
 def iterate_date(listOrigin, listDestination):
@@ -84,14 +86,6 @@ def iterate_date(listOrigin, listDestination):
                     i = '0'+str(i)
                 print(i)
                 get_data(origin, destination, f'2023-05-{i}', '4', '0')
-
-
-# %%
-#get_token()
-iterate_date 
-
-print(API_details.ACCESS_TOKEN)
-
 
 
 # %%
