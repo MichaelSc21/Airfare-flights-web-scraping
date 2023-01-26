@@ -43,6 +43,15 @@
 <p> I am now going to create dataframe based on this dictionary that I created.</p>
 
 <p><b> Note to self: when trying to iterate through a column or row of a dataframe, use the apply() or map() method to get advantage of vectorisation</b></p>
+<p><b> Note to self: When trying to read json data from a file, do it with 'r' mode because 'w' mode causes isssues</b></p>
+
+
+<h2> Future plans </h2>
+<h3> As of 26/1/2023</h3>
+<p> Try to learn how to use multiprocessing to make multiple requests to the API</p>
+<p> Optimise code? </p>
+<p> Learn more about context managers </p>
+
 
 
 
