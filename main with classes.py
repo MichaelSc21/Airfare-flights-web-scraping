@@ -47,7 +47,11 @@ def get_data(filename, origin, destination,departure, adults, children):
 
 
     data = json.loads(response.text)
-    print(data)
+
+    try:
+        data = data['data']
+    except:
+        print(data)
 
     try: 
         with open(filename, 'r') as f:
@@ -57,7 +61,7 @@ def get_data(filename, origin, destination,departure, adults, children):
 
     with open(filename, 'w') as f:
         
-        data = data['data']
+        
         try:
 
             file_json[departure] = data
@@ -67,7 +71,7 @@ def get_data(filename, origin, destination,departure, adults, children):
             try:
                 temp_dict = {departure: data}
                 #temp_dict = json.dumps(temp_dict)
-                print(temp_dict)
+                #print(temp_dict)
                 file_json = temp_dict
                 print('adding the flights for the first date')
             except Exception as err:
@@ -79,15 +83,26 @@ def get_data(filename, origin, destination,departure, adults, children):
 
 @timeit(list_times)
 def iterate_date(listOrigin, listDestination):
+    months_list = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     for origin in listOrigin:
         for destination in listDestination:
             filename = f'{origin}_to_{destination}.json'
-            for i in range(1, 30):
-                if i < 10:
-                    i = '0'+str(i)
-                print(i)
-
-                get_data(filename, origin, destination, f'2023-05-{i}', '4', '0')
+            for month in range(1, len(months_list)+1):
+                if month < 2:
+                    continue
+                if month< 10:
+                    string_month = '0'+str(month)
+                else:
+                    string_month = month
+                for day in range(1, months_list[month-1]+1):
+                    if day < 10:
+                        string_day = '0'+str(day)
+                    else:
+                        string_day = day
+                    print(day)
+                    print(string_month)
+                    print(string_day)
+                    get_data(filename, origin, destination, f'2023-{string_month}-{string_day}', '4', '0')
 
 
 # %%
