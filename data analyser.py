@@ -2,12 +2,12 @@
 import json
 import pandas as pd
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 
 # %%
-def sanitisation():
-    with open('airfare#1.json', 'r') as f:
+def sanitisation(filename):
+    with open(filename, 'r') as f:
         data = json.load(f)
     sanitised_data = {}
 
@@ -40,25 +40,30 @@ def sanitisation():
         }"""
     return sanitised_data
 
-data = sanitisation()
-df = pd.DataFrame.from_dict(data, orient='index')
-# %%
-type(['price'])
-# %%
-count = 0
-for i, j in df.iterrows():
-    print(count)
-    count+= 1
-    print(type(i))
-# %%
-
 def function1(row):
 
     return row[0]
 
 
-df['price'] = df.apply(lambda row: np.min(row[2]), axis = 1)
-df['currency'] =  df['currency'].apply(lambda row: function1(row))
 # %%
-df
+dict_dfs={}
+if __name__ == '__main__':
+    listOrigin = ['BHX', 'MAN']
+    listDestination = ['IAS']
+    dict_dfs={}
+    for origin in listOrigin:
+        for destination in listDestination:
+            filename = f'{origin}_to_{destination}.json'
+            data = sanitisation(filename)
+            df = pd.DataFrame.from_dict(data, orient='index')
+            df.index = pd.to_datetime(df.index)
+            dict_dfs[filename[:-5]] = df
+            df['price'] = df.apply(lambda row: np.min(row[2]), axis = 1)
+            df['currency'] =  df['currency'].apply(lambda row: function1(row))
 # %%
+print(dict_dfs)
+fix, ax = plt.subplots(figsize= (12, 6))
+for df in dict_dfs.values():
+    print(df)
+    ax.plot(df.index, df['price'])
+
