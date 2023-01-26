@@ -2,6 +2,22 @@
 import requests 
 import json
 import API_details
+import time
+
+list_times = []
+
+def timeit(list_times):
+    def wrapper(func):
+        def inner(*args, **kwargs):
+            start = time.time()
+            func(*args, **kwargs)
+            end = time.time()
+            print(end-start)
+            list_times.append(end-start)
+            #return list_times
+        return inner
+    return wrapper
+
 
 def get_token():
     url = "https://test.api.amadeus.com/v1/security/oauth2/token"
@@ -34,20 +50,16 @@ def get_data(origin, destination,departure, adults, children):
     print(data)
     
 
-    with open('airfare#1.json', 'r') as f:
-      try:
-          file_json = json.load(f)
-      except:
-          pass
+
     with open('airfare#1.json', 'w+') as f:
         
         data = data['data']
         print(data)
         print(type(data))
+        
         try:
-            
-            #file_json = json.load(f)
             try:
+                file_json = json.load(f)
                 file_json[departure].append(data)
                 print('appended new flights to existing date')
             except Exception as err:
@@ -57,13 +69,13 @@ def get_data(origin, destination,departure, adults, children):
                 print('done')
         except Exception as e:
             print(e)
-            print('creating a file in the first place')
+            print('creating a json object in the first place')
             del data[0]
             file_json = {departure: data}
         json.dump(file_json, f, indent = 2)
-    return data
 
 
+@timeit(list_times)
 def iterate_date(listOrigin, listDestination):
     for origin in listOrigin:
         for destination in listDestination:
@@ -74,10 +86,8 @@ def iterate_date(listOrigin, listDestination):
                 get_data(origin, destination, f'2023-05-{i}', '4', '0')
 
 
-
-
 # %%
-get_token()
+#get_token()
 iterate_date 
 
 print(API_details.ACCESS_TOKEN)
@@ -86,7 +96,10 @@ print(API_details.ACCESS_TOKEN)
 
 # %%
 if __name__ == '__main__':
-    get_token()
+
+    #get_token()
     listOrigin = ['BHX', 'MAN']
     listDestination = ['IAS']
+    
     iterate_date(listOrigin, listDestination)
+# %%
