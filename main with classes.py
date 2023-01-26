@@ -33,7 +33,7 @@ def get_token():
     API_details.ACCESS_TOKEN = response['access_token'] 
 
 
-def get_data(origin, destination,departure, adults, children):
+def get_data(filename, origin, destination,departure, adults, children):
     url = f"https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode={origin}&destinationLocationCode={destination}&departureDate={departure}&adults={adults}&children={children}&nonStop=false&max=250&currencyCode=GBP"
 
     #payload='origin=BHX&destination=IAS&departureDate=2023-05-02&adults=1&nonStop=False'
@@ -48,20 +48,20 @@ def get_data(origin, destination,departure, adults, children):
 
     data = json.loads(response.text)
     print(data)
-    
-    with open('airfare#1.json', 'r') as f:
-        try:
-            file_json = json.load(f)
-        except: 
-            pass
 
-    with open('airfare#1.json', 'w') as f:
+    try: 
+        with open(filename, 'r') as f:
+            file_json = json.load(f)
+    except: 
+        pass
+
+    with open(filename, 'w') as f:
         
         data = data['data']
         try:
 
             file_json[departure] = data
-            print('file is empty')
+            print('file is not empty any longer')
         except Exception as err:
             print(err)
             try:
@@ -75,23 +75,25 @@ def get_data(origin, destination,departure, adults, children):
 
 
         json.dump(file_json, f, indent = 2)
-    print(file_json)
+
 
 @timeit(list_times)
 def iterate_date(listOrigin, listDestination):
     for origin in listOrigin:
         for destination in listDestination:
+            filename = f'{origin}_to_{destination}.json'
             for i in range(1, 30):
                 if i < 10:
                     i = '0'+str(i)
                 print(i)
-                get_data(origin, destination, f'2023-05-{i}', '4', '0')
+
+                get_data(filename, origin, destination, f'2023-05-{i}', '4', '0')
 
 
 # %%
 if __name__ == '__main__':
 
-    #get_token()
+    get_token()
     listOrigin = ['BHX', 'MAN']
     listDestination = ['IAS']
     
