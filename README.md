@@ -1,5 +1,26 @@
 # Airfare-flights-web-scraping]
+<h1> What does this project do?</h1>
 
+<h3> The file: main with classes </h3>
+<h5> This program has 4 main functions </h5>
+<ol>
+  <li> get_token()</li>
+  <li> get_data()</li>
+  <li> iterate_date()</li>
+</ol
+
+<p> What does get_token do? </p>
+<p> It retrieves the token needed to access the API</p>
+
+
+<p> What does get_data do? </p>
+<p> It takes the json data given by the Amadeus API and dumps into a json file. The data only covers all of the flights for a single day. </p>
+
+
+<p> What does iterate_date do? </p>
+<p> It goes over each day of the year, and by implementing get_data(), get that into a json file. </p>
+<p> This json file will cover all of the flights throughout the whole year.</p>
+<p> Different json files will be used for when the data retrieved is for different <b>origin</b> and <b>departure</b> locations.</p>
 
 
 <h3> Current stage I am at: </h3>
