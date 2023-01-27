@@ -87,9 +87,8 @@ def iterate_date(listOrigin, listDestination):
     for origin in listOrigin:
         for destination in listDestination:
             filename = f'{origin}_to_{destination}.json'
-            for month in range(1, len(months_list)+1):
-                if month < 2:
-                    continue
+            for month in range(4, 6):
+
                 if month< 10:
                     string_month = '0'+str(month)
                 else:
@@ -99,7 +98,7 @@ def iterate_date(listOrigin, listDestination):
                         string_day = '0'+str(day)
                     else:
                         string_day = day
-                    print(day)
+
                     print(string_month)
                     print(string_day)
                     get_data(filename, origin, destination, f'2023-{string_month}-{string_day}', '4', '0')
@@ -109,7 +108,7 @@ def iterate_date(listOrigin, listDestination):
 if __name__ == '__main__':
 
     get_token()
-    listOrigin = ['BHX', 'MAN']
+    listOrigin = ['LTN']
     listDestination = ['IAS']
     
     iterate_date(listOrigin, listDestination)
