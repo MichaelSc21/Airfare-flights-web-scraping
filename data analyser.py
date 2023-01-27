@@ -16,9 +16,8 @@ def filename_getter(dict_locations) : # --> list
     return list_filenames
 
 
-def file_rotator(list_filenames, list_dfs =[]):
+def file_rotator(list_filenames, dict_dfs ={}):
     def wrapper(func):
-
         def creating_dfs(*args, **kwargs):
             for filename in list_filenames:
                 data = func(filename)
@@ -27,7 +26,7 @@ def file_rotator(list_filenames, list_dfs =[]):
                 dict_dfs[filename[:-5]] = df
                 df['price'] = df.apply(lambda row: np.min(row[2]), axis = 1)
                 df['currency'] =  df['currency'].apply(lambda row: function1(row))
-                list_dfs.append(df)
+            return dict_dfs
         return creating_dfs()
     return wrapper
 
@@ -37,7 +36,11 @@ def sanitisation(filename):
     sanitised_data = {}
 
     for date in data:
-        print(date)
+        sanitised_data[date]={
+                'no_trips':[],
+                'currency':[],
+                'price':[]
+         }
         for i in range(len(date)):
             sanitised_data[date]['no_trips'].append(len(data[date][i]["itineraries"][0]['segments']))
             sanitised_data[date]['currency'].append(data[date][i]['price']['currency'])
@@ -66,7 +69,7 @@ if __name__ == '__main__':
 }
     list_filenames = filename_getter(dict_locations)
     sanitisation = file_rotator(list_filenames)(sanitisation)
-    sanitisation()
+    file_rotator(list_filenames)
 
 
 
