@@ -34,11 +34,10 @@ def file_rotator(list_filenames, list_dfs =[]):
 def sanitisation(filename):
     with open(filename, 'r') as f:
         data = json.load(f)
-        print(data)
     sanitised_data = {}
 
     for date in data:
-
+        print(date)
         for i in range(len(date)):
             sanitised_data[date]['no_trips'].append(len(data[date][i]["itineraries"][0]['segments']))
             sanitised_data[date]['currency'].append(data[date][i]['price']['currency'])
@@ -70,3 +69,5 @@ if __name__ == '__main__':
     sanitisation()
 
 
+
+# %%
