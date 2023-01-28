@@ -68,9 +68,14 @@ if __name__ == '__main__':
     'listDestination': ['IAS']
 }
     list_filenames = filename_getter(dict_locations)
-    sanitisation = file_rotator(list_filenames)(sanitisation)
-    file_rotator(list_filenames)
+
+    dict_dfs = file_rotator(list_filenames)(sanitisation)
+    print(dict_dfs)
 
 
+# %%
+fig, ax = plt.subplots(figsize = (12, 6))
 
+ax.plot(dict_dfs['MAN_to_IAS'].index,dict_dfs['MAN_to_IAS']['price'])
+ax.plot(dict_dfs['BHX_to_IAS'].index,dict_dfs['BHX_to_IAS']['price'])
 # %%
