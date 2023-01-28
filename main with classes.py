@@ -18,7 +18,7 @@ def timeit(list_times):
         return inner
     return wrapper
 
-
+# Returns the token used for making API calls
 def get_token():
     url = "https://test.api.amadeus.com/v1/security/oauth2/token"
 
@@ -32,8 +32,8 @@ def get_token():
     response = json.loads(response.text)
     API_details.ACCESS_TOKEN = response['access_token'] 
 
-
-def get_data(filename, origin, destination,departure, adults, children):
+# Makes an API call to return a json data about the flights on a specific date from the origin to destination
+def get_data(origin, destination,departure, adults, children):
     url = f"https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode={origin}&destinationLocationCode={destination}&departureDate={departure}&adults={adults}&children={children}&nonStop=false&max=250&currencyCode=GBP"
 
     #payload='origin=BHX&destination=IAS&departureDate=2023-05-02&adults=1&nonStop=False'
@@ -47,12 +47,15 @@ def get_data(filename, origin, destination,departure, adults, children):
 
 
     data = json.loads(response.text)
-
     try:
         data = data['data']
     except:
         print(data)
 
+    return data, departure
+
+# Writes the json data retrieved from the API to a json file
+def write_data(filename, data, departure):
     try: 
         with open(filename, 'r') as f:
             file_json = json.load(f)
@@ -60,8 +63,6 @@ def get_data(filename, origin, destination,departure, adults, children):
         pass
 
     with open(filename, 'w') as f:
-        
-        
         try:
 
             file_json[departure] = data
@@ -76,18 +77,16 @@ def get_data(filename, origin, destination,departure, adults, children):
                 print('adding the flights for the first date')
             except Exception as err:
                 print(err)
-
-
         json.dump(file_json, f, indent = 2)
 
 
 @timeit(list_times)
-def iterate_date(listOrigin, listDestination):
+def iterate_date(dict_locations, monthStart, monthEnd):
     months_list = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    for origin in listOrigin:
-        for destination in listDestination:
+    for origin in dict_locations['listOrigin']:
+        for destination in dict_locations['listDestination']:
             filename = f'{origin}_to_{destination}.json'
-            for month in range(4, 6):
+            for month in range(monthStart, monthEnd):
 
                 if month< 10:
                     string_month = '0'+str(month)
@@ -101,15 +100,20 @@ def iterate_date(listOrigin, listDestination):
 
                     print(string_month)
                     print(string_day)
-                    get_data(filename, origin, destination, f'2023-{string_month}-{string_day}', '4', '0')
+                    data, departure = get_data(origin, destination, f'2023-{string_month}-{string_day}', '4', '0')
+                    write_data(filename, data, departure)
 
 
 # %%
 if __name__ == '__main__':
 
     get_token()
-    listOrigin = ['LTN']
-    listDestination = ['IAS']
+    monthRange=[6, 7]
+    dict_locations = {
+        'listOrigin':['BHX', 'MAN'],
+        'listDestination': ['IAS']
+    }
+
     
-    iterate_date(listOrigin, listDestination)
+    iterate_date(dict_locations, *monthRange)
 # %%
