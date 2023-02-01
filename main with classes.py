@@ -3,6 +3,7 @@ import requests
 import json
 import API_details
 import time
+import concurrent.futures
 
 list_times = []
 
@@ -47,6 +48,7 @@ def get_data(origin, destination,departure, adults, children):
 
 
     data = json.loads(response.text)
+    print(data)
     try:
         data = data['data']
     except:
@@ -80,13 +82,21 @@ def write_data(filename, data, departure):
         json.dump(file_json, f, indent = 2)
 
 
-@timeit(list_times)
-def iterate_date(dict_locations, monthStart, monthEnd):
+#@timeit(list_times)
+def iterate_date(dict_locations, monthList):
     months_list = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    print(monthList)
     for origin in dict_locations['listOrigin']:
         for destination in dict_locations['listDestination']:
             filename = f'{origin}_to_{destination}.json'
-            for month in range(monthStart, monthEnd):
+            if type(monthList) != type(list) :
+                monthStart = monthList
+                monthEnd = monthList
+            else:
+                monthStart = monthList[0]
+                monthEnd = monthList[1]
+
+            for month in range(monthStart, monthEnd+1):
 
                 if month< 10:
                     string_month = '0'+str(month)
@@ -98,8 +108,8 @@ def iterate_date(dict_locations, monthStart, monthEnd):
                     else:
                         string_day = day
 
-                    print(string_month)
-                    print(string_day)
+                    print(f"The date is {string_day}-{string_month}-2023")
+                    print(f'THis is for {filename}')
                     data, departure = get_data(origin, destination, f'2023-{string_month}-{string_day}', '4', '0')
                     write_data(filename, data, departure)
 
@@ -115,5 +125,22 @@ if __name__ == '__main__':
     }
 
     
-    iterate_date(dict_locations, *monthRange)
+    iterate_date(dict_locations, monthRange)
+# %%
+if __name__ == '__main__':
+    months = [2, 3, 4, 5, 6]
+    dict_locations = {
+        'listOrigin':['BHX', 'MAN'],
+        'listDestination': ['IAS']
+    }
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        worker_list = [executor.submit(iterate_date, dict_locations, i) for i in months]
+        
+        
+    for future in concurrent.futures.as_completed(worker_list):
+        print(future.result())
+
+
+# %%
+
 # %%
