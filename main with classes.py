@@ -4,6 +4,8 @@ import json
 import API_details
 import time
 import concurrent.futures
+import sys
+from data_analyser import sanitisation
 
 list_times = []
 
@@ -46,15 +48,15 @@ def get_data(origin, destination,departure, adults, children):
 
     response = requests.request("GET", url, headers=headers, data=payload)
 
-
+    
     data = json.loads(response.text)
-    print(data)
+
     try:
         data = data['data']
+        return data, departure
     except:
         print(data)
-
-    return data, departure
+        #return data, departure
 
 # Writes the json data retrieved from the API to a json file
 def write_data(filename, data, departure):
@@ -68,7 +70,7 @@ def write_data(filename, data, departure):
         try:
 
             file_json[departure] = data
-            print('file is not empty any longer')
+            print('adding dates to existing file')
         except Exception as err:
             print(err)
             try:
@@ -83,21 +85,22 @@ def write_data(filename, data, departure):
 
 
 #@timeit(list_times)
-def iterate_date(dict_locations, monthList):
+def rotate_location_and_date(dict_locations, monthList):
     months_list = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    print(monthList)
+
     for origin in dict_locations['listOrigin']:
         for destination in dict_locations['listDestination']:
+
             filename = f'{origin}_to_{destination}.json'
-            if type(monthList) != type(list) :
-                monthStart = monthList
-                monthEnd = monthList
-            else:
+            if type(monthList) == type([]) :
                 monthStart = monthList[0]
                 monthEnd = monthList[1]
-
+                
+            else:
+                monthStart = monthList
+                monthEnd = monthList
             for month in range(monthStart, monthEnd+1):
-
+                month_dict={}
                 if month< 10:
                     string_month = '0'+str(month)
                 else:
@@ -110,36 +113,88 @@ def iterate_date(dict_locations, monthList):
 
                     print(f"The date is {string_day}-{string_month}-2023")
                     print(f'THis is for {filename}')
+                    print(''']
+                    
+                    
+                    
+                    ''')
                     data, departure = get_data(origin, destination, f'2023-{string_month}-{string_day}', '4', '0')
-                    write_data(filename, data, departure)
+                    #write_data(filename, data, departure)
+                    month_dict[departure] = data
+                    print(sys.getsizeof(month_dict))
+                    return month_dict
 
+
+
+def rotate_date(origin, destination, monthList):
+    filename = f'{origin}_to_{destination}.json'
+    #checking whether the input contains a list of the start and end month or just one singular month to iterate over
+    if type(monthList) == type([]) :
+        monthStart = monthList[0]
+        monthEnd = monthList[1]
+        
+    else:
+        monthStart = monthList
+        monthEnd = monthList
+
+    months_list = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    # Iterating over the month
+    for month in range(monthStart, monthEnd+1):
+        month_dict={}
+        if month< 10:
+            string_month = '0'+str(month)
+        else:
+            string_month = month
+
+        #Iterating over each day of the month
+        for day in range(1, months_list[month-1]+1):
+            if day < 10:
+                string_day = '0'+str(day)
+            else:
+                string_day = day
+
+            print(f"The date is {string_day}-{string_month}-2023")
+            print(f'THis is for {filename}')
+            print(''']
+            
+            
+            
+            ''')
+            data, departure = get_data(origin, destination, f'2023-{string_month}-{string_day}', '4', '0')
+            #write_data(filename, data, departure)
+            sanitisation_2(data)
+            month_dict[departure] = data
+            print(sys.getsizeof(month_dict))
+        return month_dict, filename
 
 # %%
 if __name__ == '__main__':
-
     get_token()
-    monthRange=[6, 7]
-    dict_locations = {
-        'listOrigin':['BHX', 'MAN'],
-        'listDestination': ['IAS']
-    }
-
-    
-    iterate_date(dict_locations, monthRange)
-# %%
-if __name__ == '__main__':
     months = [2, 3, 4, 5, 6]
     dict_locations = {
         'listOrigin':['BHX', 'MAN'],
         'listDestination': ['IAS']
     }
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-        worker_list = [executor.submit(iterate_date, dict_locations, i) for i in months]
-        
-        
-    for future in concurrent.futures.as_completed(worker_list):
-        print(future.result())
+    
 
+    for origin in dict_locations['listOrigin']:
+        for destination in dict_locations['listDestination']:
+
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                #worker_list = [executor.submit(rotate_date, origin, destination, month) for month in months]
+                worker_list = []
+                for month in months:
+                    worker_list.append(executor.submit(rotate_date, origin, destination, month))
+                    time.sleep(0.5)
+
+            
+            for future in concurrent.futures.as_completed(worker_list):
+                print(future.result())
+                data, filename = future.result()
+                with open(filename, 'w') as f:
+                    json.dump(data, f, indent=2)
+        
 
 # %%
 
