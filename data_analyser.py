@@ -24,8 +24,11 @@ def file_rotator(list_filenames, dict_dfs ={}):
                 df = pd.DataFrame.from_dict(data, orient='index')
                 df.index = pd.to_datetime(df.index)
                 dict_dfs[filename[:-5]] = df
-                df['price'] = df.apply(lambda row: np.min(row[2]), axis = 1)
-                df['currency'] =  df['currency'].apply(lambda row: function1(row))
+                try:
+                    df['price'] = df.apply(lambda row: np.min(row[2]), axis = 1)
+                    df['currency'] =  df['currency'].apply(lambda row: function1(row))
+                except:
+                    pass
             return dict_dfs
         return creating_dfs()
     return wrapper
@@ -42,11 +45,12 @@ def sanitisation(filename=None, data=None):
                 'currency':[],
                 'price':[]
          }
-        for i in range(len(date)):
-            sanitised_data[date]['no_trips'].append(len(data[date][i]["itineraries"][0]['segments']))
-            sanitised_data[date]['currency'].append(data[date][i]['price']['currency'])
+        if data[date] != None:
+            for i in range(len(date)):
+                sanitised_data[date]['no_trips'].append(len(data[date][i]["itineraries"][0]['segments']))
+                sanitised_data[date]['currency'].append(data[date][i]['price']['currency'])
 
-            sanitised_data[date]['price'].append(data[date][i]['price']['total'])
+                sanitised_data[date]['price'].append(data[date][i]['price']['total'])
 
         sanitised_data[date]['price'] = np.array(sanitised_data[date]['price'], dtype = np.float32)
         
@@ -66,7 +70,6 @@ def sanitisation_2(filename=None, data=None):
     for i in range(len(data)):
         sanitised_data['no_trips'].append(len(data[i]["itineraries"][0]['segments']))
         sanitised_data['currency'].append(data[i]['price']['currency'])
-
         sanitised_data['price'].append(data[i]['price']['total'])
 
     #sanitised_data['price'] = np.array(sanitised_data['price'], dtype = np.float32)
@@ -85,16 +88,21 @@ def function1(row):
 # %% 
 if __name__ == '__main__':
     dict_locations={
-    'listOrigin':['BHX', 'MAN'],
+    'listOrigin':['BHX'],
     'listDestination': ['IAS']
 }
     list_filenames = filename_getter(dict_locations)
-
-    dict_dfs = file_rotator(list_filenames)(sanitisation)
-    print(dict_dfs)
+    #df = sanitisation(list_filenames[0])
+    #print(df)
+    dict_dfs = file_rotator(list_filenames)(sanitisation_2)
+    print(dict_dfs['BHX_to_IAS'])
 
     fig, ax = plt.subplots(figsize = (12, 6))
 
-    ax.plot(dict_dfs['MAN_to_IAS'].index,dict_dfs['MAN_to_IAS']['price'])
+    #ax.plot(dict_dfs['MAN_to_IAS'].index,dict_dfs['MAN_to_IAS']['price'])
     ax.plot(dict_dfs['BHX_to_IAS'].index,dict_dfs['BHX_to_IAS']['price'])
 
+
+# %%
+
+# %%
