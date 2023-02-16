@@ -7,7 +7,7 @@ import concurrent.futures
 import sys
 import importlib
 
-#import data_analyser
+import data_analyser
 importlib.reload(API_details)
 
 # %%
@@ -146,11 +146,11 @@ class each_month():
 
 # %%
 if __name__ == '__main__':
-    months = [3, 4]
+    months = [3, 4, 5, 6, 7, 8, 9]
     max_workers = 3
     period = 11
     loop_over = 3
-    object1 = api_caller_one_way_tickets('BHX', 'IAS', 4, 0, months)
+    object1 = api_caller_one_way_tickets('MAN', 'IAS', adults =4, children = 0, months = months)
     object1.using_threads(max_workers, period, loop_over)
 
 
