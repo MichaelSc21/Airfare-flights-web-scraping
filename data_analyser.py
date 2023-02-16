@@ -53,33 +53,36 @@ def file_rotator(list_filenames, dict_dfs ={}):
         return creating_dfs()
     return wrapper
 
-def sanitisation(filename=None, data=None):
-    if filename != None:
-        with open(filename, 'r') as f:
-            data = json.load(f)
-        sanitised_data = {}
+def sanitisation(filename=None, data=None): # --> list
+    list_data=[]
+    for filename in list_filenames:
 
-    for date in data:
-        sanitised_data[date]={
-                'no_trips':[],
-                'currency':[],
-                'price':np.empty(0).astype(np.float32)
-         }
-        if data[date] != None:
-            for i in range(len(date)):
-                no_trips = len(data[date][i]["itineraries"][0]['segments'])
-                currency = data[date][i]['price']['currency']
-                price = np.float32(data[date][i]['price']['total'])
+        if filename != None:
+            with open(filename, 'r') as f:
+                data = json.load(f)
+            sanitised_data = {}
+        
+        for date in data:
+            sanitised_data[date]={
+                    'no_trips':[],
+                    'currency':[],
+                    'price':np.empty(0).astype(np.float32)
+            }
+            if data[date] != None:
+                for i in range(len(date)):
+                    no_trips = len(data[date][i]["itineraries"][0]['segments'])
+                    currency = data[date][i]['price']['currency']
+                    price = np.float32(data[date][i]['price']['total'])
 
-                sanitised_data[date]['no_trips'].append(no_trips)
-                sanitised_data[date]['currency'].append(currency)
-                sanitised_data[date]['price'] = np.append(sanitised_data[date]['price'], price)
-        else:
-            sanitised_data[date]['no_trips'] = np.nan
-            sanitised_data[date]['currency'] = np.nan
-            sanitised_data[date]['price'] = np.nan
-
-    return sanitised_data
+                    sanitised_data[date]['no_trips'].append(no_trips)
+                    sanitised_data[date]['currency'].append(currency)
+                    sanitised_data[date]['price'] = np.append(sanitised_data[date]['price'], price)
+            else:
+                sanitised_data[date]['no_trips'] = np.nan
+                sanitised_data[date]['currency'] = np.nan
+                sanitised_data[date]['price'] = np.nan
+        list_data.append(sanitised_data)
+    return list_data
 
 
 
@@ -97,8 +100,10 @@ def sort_out_price(row):
         print(row)
 
 def creating_dfs(list_filenames, data):
-    for filename in list_filenames:
-        df = pd.DataFrame.from_dict(data, orient='index')
+    dict_dfs = {}
+    for idx, filename in enumerate(list_filenames):
+
+        df = pd.DataFrame.from_dict(data[idx], orient='index')
         df.index = pd.to_datetime(df.index)
         dict_dfs[filename[:-5]] = df
         try:
@@ -118,10 +123,10 @@ def creating_dfs(list_filenames, data):
 
 
 def model_f(x, a, b, c, d, e):
-    return  a*x**2 + b*x + c
+    return  a*x*2 + b
 
     
-def plot_graph(x, y):
+def plot_graph(filename, x, y, ax, line_colour):
     mask1 = ~x.isnull()
     mask2 = ~y.isnull()
     x = x[mask2 & mask1]
@@ -129,42 +134,81 @@ def plot_graph(x, y):
     # I use this for curve fitting becuase the curve fit doesn't take in data in the format of dates as a parameter
     # therefore, I use the number of seconds since 1970 on my x axis for my curve fitting
     x_numerical = (x - pd.Timestamp("1970-01-01")) // pd.Timedelta('1s')
-    print(x_numerical)
+
     popt, pcov = curve_fit(model_f, x_numerical, y)
     y_data = model_f(x_numerical, *popt)
 
-    print(popt)
+    #print(popt)
 
     #a, b = np.polyfit(x_numerical, y, 1)
+    print(filename)
+    #fig, ax = plt.subplots(figsize = (12, 6))
+    string = f'Total price of a flight for: {filename}'
+    ax.plot(x, y_data, color=line_colour, label = string)
+    ax.scatter(x, y, color = line_colour, marker='.')
+    ax.legend()
+    ax.set_ylabel('Price in £')
+    ax.set_xlabel('Date')
 
-    fig, ax = plt.subplots(figsize = (12, 6))
-   
-    ax.plot(x, y_data, color='red')
-    ax.scatter(x, y, marker='o')
-    ax.legend(['Total price of a flight from BHX to IAS for 4 people'])
-
+def plot_graph_2(x, y):
+    mask1 = ~x.isnull()
+    mask2 = ~y.isnull()
+    x = x[mask2 & mask1]
+    y = y[mask1 & mask2]
+    # I use this for curve fitting becuase the curve fit doesn't take in data in the format of dates as a parameter
+    # therefore, I use the number of seconds since 1970 on my x axis for my curve fitting
+    x_num = (x - pd.Timestamp("1970-01-01")) // pd.Timedelta('1s')
+    fig, ax1= plt.subplots(figsize = (12, 6))
+    ax1.scatter(x, y)
+    a, b, c= np.polyfit(x_num, y, 2)
+    ax.plot(x, a*x_num**2 + b*x_num+c, 'r')
+    print(a)
 
 # %% 
 if __name__ == '__main__':
     dict_locations={
-    'listOrigin':['BHX'],
+    'listOrigin':['BHX', 'MAN'],
     'listDestination': ['IAS']
 }
     list_filenames = filename_getter(dict_locations)
-    data = sanitisation(list_filenames[0])
+
+    data = sanitisation(list_filenames)
+
+    dict_dfs = creating_dfs(list_filenames, data)
+    list_keys=[]
+    for key in dict_dfs.keys():
+        list_keys.append(key)
+    fig, axs= plt.subplots(2, 1, figsize = (12, 6))
+
+    for idx, (key, val) in enumerate(dict_dfs.items()):
+        #print(list_filenames[idx])
+        plot_graph(list_filenames[idx], val.index, val['price'], axs[idx],'red')
+        axs[idx].scatter(val.index, val['price'])
+
+
+
+    #ax1.plot(dict_dfs['MAN_to_IAS'].index,dict_dfs['MAN_to_IAS']['price'])
+    #plot_graph(dict_dfs['BHX_to_IAS'].index, dict_dfs['BHX_to_IAS']['price'])
+    #ax1.scatter(dict_dfs['BHX_to_IAS'].index,dict_dfs['BHX_to_IAS']['price'])
+
+
+# %%
+if '__main__' == __name__:
+    dict_locations={
+    'listOrigin':['BHX', 'MAN'],
+    'listDestination': ['IAS']
+}
+    list_filenames = filename_getter(dict_locations)
+    data = sanitisation(list_filenames)
 
     dict_dfs = creating_dfs(list_filenames, data)
 
-    fig, ax = plt.subplots(figsize = (12, 6))
+    fig, ax= plt.subplots(figsize = (12, 6))
 
-    #ax.plot(dict_dfs['MAN_to_IAS'].index,dict_dfs['MAN_to_IAS']['price'])
-    plot_graph(dict_dfs['BHX_to_IAS'].index, dict_dfs['BHX_to_IAS']['price'])
-    ax.scatter(dict_dfs['BHX_to_IAS'].index,dict_dfs['BHX_to_IAS']['price'])
 
+    plot_graph(list_keys[0], dict_dfs[list_keys[0]].index, dict_dfs[list_keys[0]]['price'],ax, line_colour = 'red')
+    plot_graph(list_keys[1], dict_dfs[list_keys[1]].index, dict_dfs[list_keys[1]]['price'],ax, line_colour = 'blue')
 # %%
 
-# %%
-print(sys.getsizeof(dict_dfs['BHX_to_IAS']))
-dict_dfs['BHX_to_IAS']
-
+plot_graph_2(dict_dfs[list_keys[0]].index, dict_dfs[list_keys[0]]['price'])
 # %%
