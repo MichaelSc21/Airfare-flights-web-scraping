@@ -159,7 +159,7 @@ if __name__ == '__main__':
 			with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
 				dayResume = 1
 				
-				for periodic in range(3):
+				for _ in range(3):
 					print(f"The dayResume is: {dayResume}")
 					print("""
 				
