@@ -8,10 +8,10 @@ from scipy.optimize import curve_fit
 
 
 # %%
-def filename_getter(dict_locations) : # --> list
+def filename_getter(origins, destinations) : # --> list
     list_filenames = []
-    for origin in dict_locations['listOrigin']:
-            for destination in dict_locations['listDestination']:
+    for origin in origins:
+            for destination in destinations:
                 filename = f'{origin}_to_{destination}.json'
                 list_filenames.append(filename)
     return list_filenames
@@ -53,7 +53,7 @@ def file_rotator(list_filenames, dict_dfs ={}):
         return creating_dfs()
     return wrapper
 
-def sanitisation(filename=None, data=None): # --> list
+def sanitisation(list_filenames=None, data=None): # --> list
     list_data=[]
     for filename in list_filenames:
 
@@ -99,7 +99,7 @@ def sort_out_price(row):
         print(err)
         print(row)
 
-def creating_dfs(list_filenames, data):
+def creating_dfs(list_filenames, data): # --> dict={filename: pd.dataframe}
     dict_dfs = {}
     for idx, filename in enumerate(list_filenames):
 
@@ -126,7 +126,7 @@ def model_f(x, a, b, c, d, e):
     return  a*x*2 + b
 
     
-def plot_graph(filename, x, y, ax, line_colour):
+def plot_graph(filename, x, y, ax, line_colour): # --> plots graph
     mask1 = ~x.isnull()
     mask2 = ~y.isnull()
     x = x[mask2 & mask1]
@@ -149,28 +149,16 @@ def plot_graph(filename, x, y, ax, line_colour):
     ax.legend()
     ax.set_ylabel('Price in £')
     ax.set_xlabel('Date')
-
-def plot_graph_2(x, y):
-    mask1 = ~x.isnull()
-    mask2 = ~y.isnull()
-    x = x[mask2 & mask1]
-    y = y[mask1 & mask2]
-    # I use this for curve fitting becuase the curve fit doesn't take in data in the format of dates as a parameter
-    # therefore, I use the number of seconds since 1970 on my x axis for my curve fitting
-    x_num = (x - pd.Timestamp("1970-01-01")) // pd.Timedelta('1s')
-    fig, ax1= plt.subplots(figsize = (12, 6))
-    ax1.scatter(x, y)
-    a, b, c= np.polyfit(x_num, y, 2)
-    ax.plot(x, a*x_num**2 + b*x_num+c, 'r')
-    print(a)
+    
+def making_plot():
+    fig, ax= plt.subplots(figsize = (12, 6))
+    return fig, ax
 
 # %% 
 if __name__ == '__main__':
-    dict_locations={
-    'listOrigin':['BHX', 'MAN'],
-    'listDestination': ['IAS']
-}
-    list_filenames = filename_getter(dict_locations)
+    origins = ['BHX', 'MAN']
+    destinations = ['IAS']
+    list_filenames = filename_getter(origins, destinations)
 
     data = sanitisation(list_filenames)
 
@@ -192,23 +180,21 @@ if __name__ == '__main__':
     #ax1.scatter(dict_dfs['BHX_to_IAS'].index,dict_dfs['BHX_to_IAS']['price'])
 
 
+
 # %%
 if '__main__' == __name__:
-    dict_locations={
-    'listOrigin':['BHX', 'MAN'],
-    'listDestination': ['IAS']
-}
-    list_filenames = filename_getter(dict_locations)
+    origins = ['BHX', 'MAN']
+    destinations = ['IAS']
+    list_filenames = filename_getter(origins, destinations)
+
     data = sanitisation(list_filenames)
 
     dict_dfs = creating_dfs(list_filenames, data)
 
-    fig, ax= plt.subplots(figsize = (12, 6))
+    fig, ax= making_plot()
 
 
     plot_graph(list_keys[0], dict_dfs[list_keys[0]].index, dict_dfs[list_keys[0]]['price'],ax, line_colour = 'red')
     plot_graph(list_keys[1], dict_dfs[list_keys[1]].index, dict_dfs[list_keys[1]]['price'],ax, line_colour = 'blue')
-# %%
 
-plot_graph_2(dict_dfs[list_keys[0]].index, dict_dfs[list_keys[0]]['price'])
 # %%
