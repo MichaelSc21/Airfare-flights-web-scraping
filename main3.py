@@ -7,13 +7,13 @@ import concurrent.futures
 import sys
 import importlib
 
-import data_analyser
-importlib.reload(data_analyser)
+#import data_analyser
+importlib.reload(API_details)
 
 # %%
 
 class api_caller_one_way_tickets(object):
-    def __init__(self, origin, destination,departure, adults, children):
+    def __init__(self, origin=None, destination=None, adults=0, children=0, months=None):
         # Maybe add a timer to check when it was the last time the token had been fetched from the server
 
         url = "https://test.api.amadeus.com/v1/security/oauth2/token"
@@ -27,25 +27,26 @@ class api_caller_one_way_tickets(object):
 
         response = json.loads(response.text)
         self.ACCESS_TOKEN = response['access_token'] 
-
+        print(self.ACCESS_TOKEN)
         self.origin = origin
         self.destination = destination
-        #self.departure  = departure
         self.adults = adults
         self.children = children
-
+        self.months = months
+        self.filename = f'{self.origin}_to_{self.destination}.json'
 
     # this is meant to write a dictionary that has quite a few elemnts to a file 
     # it writes to the file a dictionary of the data of different dates rather than one singular date like def write_data does
-    def write_data_in_chunks(self, filename, data):
+
+    def write_data_in_chunks(self, data):
 
         try: 
-            with open(filename, 'r') as f:
+            with open(self.filename, 'r') as f:
                 file_json = json.load(f)
         except: 
             pass
 
-        with open(filename, 'w') as f:
+        with open(self.filename, 'w') as f:
             try:
                 file_json = file_json|data
             except Exception as err:
@@ -54,11 +55,11 @@ class api_caller_one_way_tickets(object):
             json.dump(file_json, f, indent = 2)
 
 
-    def using_threads(self, months, period):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+    def using_threads(self,max_workers = 3, period=11, loop_over=3):
+        with concurrent.futures.ThreadPoolExecutor(max_workers) as executor:
             self.dayResume = 1
             
-            for _ in range(3):
+            for _ in range(loop_over):
                 print(f"The dayResume is: {self.dayResume}")
                 print("""
             
@@ -66,12 +67,12 @@ class api_caller_one_way_tickets(object):
                 """)
                 worker_list = []
                 class_list = []
-                for month in months:
+                for month in range(len(self.months)):
                     #creating instances of a class
-                    class_list.append(each_month())
+                    class_list.append(each_month(self.ACCESS_TOKEN))
                     #using the methods of the instances of the class
-                    worker_list.append(executor.submit(each_month.
-                    rotate_date, origin=self.origin, destination=self.destination, month=month,dayResume=self.dayResume, period = period))
+                    worker_list.append(executor.submit(class_list[month].
+                    rotate_date, origin=self.origin, destination=self.destination, month=self.months[month],dayResume=self.dayResume, period = period))
                     time.sleep(0.5)
 
             
@@ -82,8 +83,11 @@ class api_caller_one_way_tickets(object):
         
 
 class each_month():
-    def get_data(self, departure):
-        url = f"https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode={self.origin}&destinationLocationCode={self.destination}&departureDate={departure}&adults={self.adults}&children={self.children}&nonStop=false&max=250&currencyCode=GBP"
+    def __init__(self, ACCESS_TOKEN):
+        self.ACCESS_TOKEN = ACCESS_TOKEN
+
+    def get_data(self, origin, destination, departure, adults, children):
+        url = f"https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode={origin}&destinationLocationCode={destination}&departureDate={departure}&adults={adults}&children={children}&nonStop=false&max=250&currencyCode=GBP"
 
         #payload='origin=BHX&destination=IAS&departureDate=2023-05-02&adults=1&nonStop=False'
         payload = {}
@@ -110,10 +114,9 @@ class each_month():
 
         # afsag
         # make sure you use an official library for the date and month
-
         month_dict = {}
         months_list = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-        filename = f'{origin}_to_{destination}.json'
+        
         if month< 10:
             string_month = '0'+str(month)
         else:
@@ -122,13 +125,14 @@ class each_month():
         dayEnd = dayResume + period
         if dayEnd > months_list[month-1]+1:
             dayEnd =months_list[month-1] +1
+        print(f'The month is {month}')
         for day in range(dayResume, dayEnd):
             if day < 10:
                 string_day = '0'+str(day)
             else:
                 string_day = day
 
-            #print(f"The date is {string_day}-{string_month}-2023")
+            print(f"The date is {string_day}-{string_month}-2023")
             #print(f'THis is for {filename}')
 
             data, departure = self.get_data(origin, destination, f'2023-{string_month}-{string_day}', '4', '0')
@@ -138,6 +142,16 @@ class each_month():
             
         return month_dict, day+1
 
+
+
+# %%
+if __name__ == '__main__':
+    months = [3, 4]
+    max_workers = 3
+    period = 11
+    loop_over = 3
+    object1 = api_caller_one_way_tickets('BHX', 'IAS', 4, 0, months)
+    object1.using_threads(max_workers, period, loop_over)
 
 
 # %%
